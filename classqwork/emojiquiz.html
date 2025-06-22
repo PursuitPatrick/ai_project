@@ -1,0 +1,1369 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Emoji Quiz</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            min-height: 100vh;
+            background: linear-gradient(135deg, #6B73FF 0%, #000DFF 100%);
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+            color: white;
+        }
+
+        .quiz-container {
+            max-width: 800px;
+            margin: 2rem auto;
+            padding: 2rem;
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.37);
+            position: relative;
+        }
+
+        .back-button {
+            position: absolute;
+            top: 1rem;
+            left: 1rem;
+            z-index: 10;
+            opacity: 0.9;
+            transition: opacity 0.3s ease;
+        }
+
+        .back-button:hover {
+            opacity: 1;
+        }
+
+        .stats-bar {
+            display: flex;
+            justify-content: space-between;
+            background: rgba(255, 255, 255, 0.2);
+            padding: 1rem 2rem;
+            border-radius: 15px;
+            margin: 3rem 0 2rem 0;
+            font-size: 1.1rem;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        .emoji-display {
+            font-size: 5rem;
+            text-align: center;
+            margin: 2rem 0;
+            text-shadow: 2px 2px 8px rgba(0, 0, 0, 0.2);
+            animation: float 3s ease-in-out infinite;
+        }
+
+        .options-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 1.5rem;
+            margin-top: 2rem;
+        }
+
+        .option-button {
+            padding: 1.2rem;
+            font-size: 1.1rem;
+            border: none;
+            border-radius: 12px;
+            background: rgba(255, 255, 255, 0.9);
+            color: #333;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        .option-button:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.2);
+            background: white;
+        }
+
+        .option-button:active {
+            transform: translateY(1px);
+        }
+
+        .feedback {
+            text-align: center;
+            font-size: 1.5rem;
+            margin: 1rem 0;
+            padding: 1rem;
+            border-radius: 10px;
+            animation: fadeIn 0.5s ease-out;
+        }
+
+        .feedback.correct {
+            background: rgba(46, 213, 115, 0.2);
+            color: #2ed573;
+        }
+
+        .feedback.incorrect {
+            background: rgba(255, 71, 87, 0.2);
+            color: #ff4757;
+        }
+
+        .category-button {
+            padding: 1.2rem 2rem;
+            margin: 0.5rem;
+            font-size: 1.1rem;
+            border: none;
+            border-radius: 12px;
+            background: rgba(255, 255, 255, 0.9);
+            color: #333;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        .category-button:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.2);
+            background: white;
+        }
+
+        @keyframes float {
+            0% { transform: translateY(0px); }
+            50% { transform: translateY(-10px); }
+            100% { transform: translateY(0px); }
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .score-display {
+            text-align: center;
+            font-size: 2rem;
+            margin: 2rem 0;
+        }
+
+        .timer {
+            font-size: 1.2rem;
+            color: white;
+            text-shadow: 1px 1px 4px rgba(0, 0, 0, 0.2);
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 10px;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 5px;
+            margin: 1rem 0;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #00b894, #00cec9);
+            transition: width 0.3s ease;
+        }
+
+        .fire-emoji {
+            position: fixed;
+            font-size: 3rem;
+            pointer-events: none;
+            z-index: 9999;
+            transition: all 1s ease-out;
+        }
+
+        .fire-emoji-container {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            width: 0;
+            height: 0;
+            z-index: 9999;
+            pointer-events: none;
+        }
+
+        .streak-count {
+            position: absolute;
+            top: 1rem;
+            right: 1rem;
+            padding: 0.5rem 1rem;
+            background: linear-gradient(45deg, #FF4500, #FFD700);
+            border-radius: 20px;
+            color: white;
+            font-weight: bold;
+            text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.3);
+            z-index: 1001;
+        }
+
+        /* Remove old hot streak styles */
+        .hot-streak {
+            display: none;
+        }
+
+        /* Add these new styles */
+        @keyframes floatEmoji {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-20px); }
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+
+        @keyframes gradientBG {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        .category-title {
+            font-size: 3.5rem;
+            margin-bottom: 1rem;
+            background: linear-gradient(45deg, #FFD700, #FFF, #FFD700);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
+            animation: pulse 2s infinite;
+            text-align: center;
+            width: 100%;
+        }
+
+        .emoji-decoration {
+            font-size: 2.5rem;
+            position: absolute;
+            animation: floatEmoji 3s ease-in-out infinite;
+            opacity: 0.7;
+            pointer-events: none;
+        }
+
+        .category-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1.5rem;
+            padding: 2rem;
+            position: relative;
+            z-index: 1;
+        }
+
+        .category-button {
+            padding: 1.5rem;
+            font-size: 1.2rem;
+            border: none;
+            border-radius: 15px;
+            background: rgba(255, 255, 255, 0.9);
+            color: #333;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .category-button:before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(45deg, rgba(255,255,255,0.1), rgba(255,255,255,0.2));
+            transform: translateX(-100%);
+            transition: transform 0.6s ease;
+        }
+
+        .category-button:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.2);
+        }
+
+        .category-button:hover:before {
+            transform: translateX(100%);
+        }
+
+        .welcome-container {
+            background: linear-gradient(135deg, #1e3c72, #2a5298, #2a5298, #1e3c72);
+            background-size: 400% 400%;
+            animation: gradientBG 15s ease infinite;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 2rem;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .welcome-content {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            padding: 3rem;
+            border-radius: 20px;
+            box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.37);
+            width: 100%;
+            max-width: 1200px;
+            position: relative;
+            z-index: 1;
+            text-align: center;
+        }
+
+        .category-description {
+            color: rgba(255, 255, 255, 0.9);
+            text-align: center;
+            font-size: 1.2rem;
+            margin-bottom: 2rem;
+            line-height: 1.6;
+        }
+    </style>
+</head>
+<body>
+    <div id="root"></div>
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.development.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <script type="text/babel" data-type="module">
+        function shuffleArray(array) {
+            for (let i = array.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [array[i], array[j]] = [array[j], array[i]];
+            }
+            return array;
+        }
+
+        const allCategories = {
+            dc_heroes: [
+                {
+                    content: "🦇🌃💰",
+                    answer: "Batman",
+                    options: ["Batman", "Moon Knight", "Black Panther", "Nightwing"]
+                },
+                {
+                    content: "⚡👦🔌",
+                    answer: "Shazam",
+                    options: ["Shazam", "Flash", "Static Shock", "Thor"]
+                },
+                {
+                    content: "👨‍🦸‍♂️💪🌍",
+                    answer: "Superman",
+                    options: ["Superman", "Homelander", "Hyperion", "Captain Marvel"]
+                },
+                {
+                    content: "⚡👟💨",
+                    answer: "The Flash",
+                    options: ["The Flash", "Quicksilver", "Speed Demon", "Sonic"]
+                },
+                {
+                    content: "🗡️👸🏻🌊",
+                    answer: "Wonder Woman",
+                    options: ["Wonder Woman", "Xena", "She-Ra", "Valkyrie"]
+                },
+                {
+                    content: "🔱🌊👑",
+                    answer: "Aquaman",
+                    options: ["Aquaman", "Namor", "Poseidon", "Triton"]
+                },
+                {
+                    content: "💚🏹💪",
+                    answer: "Green Arrow",
+                    options: ["Green Arrow", "Hawkeye", "Robin Hood", "Merida"]
+                },
+                {
+                    content: "💍💚✨",
+                    answer: "Green Lantern",
+                    options: ["Green Lantern", "Doctor Strange", "Nova", "Star Sapphire"]
+                },
+                {
+                    content: "🦅👩🔨",
+                    answer: "Hawkgirl",
+                    options: ["Hawkgirl", "Falcon", "Angel", "Phoenix"]
+                },
+                {
+                    content: "🤖👨💫",
+                    answer: "Cyborg",
+                    options: ["Cyborg", "Iron Man", "Machine Man", "Ultron"]
+                },
+                {
+                    content: "🦸‍♀️👩🏼💥",
+                    answer: "Supergirl",
+                    options: ["Supergirl", "Captain Marvel", "Ms. Marvel", "Power Girl"]
+                },
+                {
+                    content: "⚡️👨🏾⚫",
+                    answer: "Black Lightning",
+                    options: ["Black Lightning", "Static Shock", "Storm", "Electro"]
+                },
+                {
+                    content: "🦅🔨👊",
+                    answer: "Hawkman",
+                    options: ["Hawkman", "Thor", "Falcon", "Angel"]
+                },
+                {
+                    content: "🃏👩💚",
+                    answer: "Poison Ivy",
+                    options: ["Poison Ivy", "Harley Quinn", "Catwoman", "Black Canary"]
+                },
+                {
+                    content: "🦇👧🏻🔴",
+                    answer: "Batgirl",
+                    options: ["Batgirl", "Batwoman", "Robin", "Black Bat"]
+                },
+                {
+                    content: "🔵👨‍🦲🌟",
+                    answer: "Doctor Manhattan",
+                    options: ["Doctor Manhattan", "Blue Beetle", "Captain Atom", "Watchmen"]
+                },
+                {
+                    content: "🦸‍♂️👦🔴",
+                    answer: "Shazam",
+                    options: ["Shazam", "Captain Marvel", "Superman", "Flash"]
+                },
+                {
+                    content: "🎭🃏😈",
+                    answer: "The Joker",
+                    options: ["The Joker", "Riddler", "Penguin", "Two-Face"]
+                },
+                {
+                    content: "😺💎💰",
+                    answer: "Catwoman",
+                    options: ["Catwoman", "Black Cat", "Cheetah", "Tigress"]
+                },
+                {
+                    content: "❓👨🟩",
+                    answer: "The Riddler",
+                    options: ["The Riddler", "The Joker", "Mysterio", "Question"]
+                }
+            ],
+            cartoon_network: [
+                {
+                    content: "👦🐕🦸‍♂️💪",
+                    answer: "Ben 10",
+                    options: ["Ben 10", "Generator Rex", "Kid Cosmic", "Max Steel"]
+                },
+                {
+                    content: "🧸💙🏠👻",
+                    answer: "Foster's Home for Imaginary Friends",
+                    options: ["Foster's Home for Imaginary Friends", "The Ghost and Molly McGee", "Casper", "Monster House"]
+                },
+                {
+                    content: "3️⃣👭👧🔍",
+                    answer: "Powerpuff Girls",
+                    options: ["Powerpuff Girls", "Totally Spies", "W.I.T.C.H.", "Winx Club"]
+                },
+                {
+                    content: "🐱🤖👦🔬",
+                    answer: "Dexter's Laboratory",
+                    options: ["Dexter's Laboratory", "Jimmy Neutron", "Inspector Gadget", "Johnny Test"]
+                },
+                {
+                    content: "🐻🐼🐻‍❄️📱",
+                    answer: "We Bare Bears",
+                    options: ["We Bare Bears", "Brother Bear", "Care Bears", "Kung Fu Panda"]
+                },
+                {
+                    content: "👦🗡️🤖💫",
+                    answer: "Steven Universe",
+                    options: ["Steven Universe", "Star vs Forces of Evil", "Voltron", "Astro Boy"]
+                },
+                {
+                    content: "🧢👻👻👻",
+                    answer: "Danny Phantom",
+                    options: ["Danny Phantom", "Casper", "Ghost Busters", "Monster High"]
+                },
+                {
+                    content: "🐯🐱🤼‍♂️🥋",
+                    answer: "Gumball",
+                    options: ["Gumball", "Tom and Jerry", "Kung Fu Panda", "Puss in Boots"]
+                },
+                {
+                    content: "🦁🦒🦍🏰",
+                    answer: "Camp Lazlo",
+                    options: ["Camp Lazlo", "Madagascar", "Wild Kratts", "Jungle Junction"]
+                },
+                {
+                    content: "👱‍♂️👩🌎⚔️",
+                    answer: "Adventure Time",
+                    options: ["Adventure Time", "The Dragon Prince", "Over the Garden Wall", "Infinity Train"]
+                },
+                {
+                    content: "💀💪🎽😈",
+                    answer: "Billy and Mandy",
+                    options: ["Billy and Mandy", "Soul Eater", "Death Note", "Bleach"]
+                },
+                {
+                    content: "🤖👦🔧🚀",
+                    answer: "Generator Rex",
+                    options: ["Generator Rex", "Astro Boy", "Max Steel", "Ben 10"]
+                },
+                {
+                    content: "🐰👩‍🦰👻🏠",
+                    answer: "Courage the Cowardly Dog",
+                    options: ["Courage the Cowardly Dog", "Bunnicula", "Scooby-Doo", "Monster House"]
+                },
+                {
+                    content: "🧙‍♂️👦📚🐉",
+                    answer: "The Life and Times of Juniper Lee",
+                    options: ["The Life and Times of Juniper Lee", "American Dragon", "Jackie Chan Adventures", "W.I.T.C.H."]
+                },
+                {
+                    content: "🎵🎸👩‍🎤🌈",
+                    answer: "Hi Hi Puffy AmiYumi",
+                    options: ["Hi Hi Puffy AmiYumi", "K-On!", "Jem and the Holograms", "Love Live!"]
+                },
+                {
+                    content: "🤡🧠👽🌍",
+                    answer: "Johnny Bravo",
+                    options: ["Johnny Bravo", "Space Dandy", "Elvis", "Zapp Brannigan"]
+                },
+                {
+                    content: "🏰🧙‍♂️📜⚔️",
+                    answer: "Samurai Jack",
+                    options: ["Samurai Jack", "Avatar", "Xiaolin Showdown", "Ninja Scroll"]
+                },
+                {
+                    content: "🏫👻👨‍🏫📚",
+                    answer: "School for Vampires",
+                    options: ["School for Vampires", "Monster High", "Little Witch Academia", "Rosario + Vampire"]
+                },
+                {
+                    content: "🤖🔫👦🌟",
+                    answer: "Sym-Bionic Titan",
+                    options: ["Sym-Bionic Titan", "Voltron", "Gundam", "Pacific Rim"]
+                },
+                {
+                    content: "🏕️🐘🦒🐵",
+                    answer: "Camp Lazlo",
+                    options: ["Camp Lazlo", "Wild Thornberrys", "Madagascar", "Jungle Book"]
+                }
+            ],
+            nickelodeon: [
+                {
+                    content: "🧽👖⭐",
+                    answer: "SpongeBob SquarePants",
+                    options: ["SpongeBob SquarePants", "Patrick Star", "Sandy Cheeks", "Mr. Krabs"]
+                },
+                {
+                    content: "👶🍼👨‍👦",
+                    answer: "Tommy Pickles",
+                    options: ["Tommy Pickles", "Chuckie Finster", "Phil DeVille", "Dil Pickles"]
+                },
+                {
+                    content: "🏹💨🌎",
+                    answer: "Aang",
+                    options: ["Aang", "Korra", "Zuko", "Sokka"]
+                },
+                {
+                    content: "🐱🐶💪",
+                    answer: "CatDog",
+                    options: ["CatDog", "Ren & Stimpy", "Angry Beavers", "Rocko"]
+                },
+                {
+                    content: "👻👦🏻👻",
+                    answer: "Danny Phantom",
+                    options: ["Danny Phantom", "Casper", "Timmy Turner", "Jimmy Neutron"]
+                },
+                {
+                    content: "🧠👦🚀",
+                    answer: "Jimmy Neutron",
+                    options: ["Jimmy Neutron", "Dexter", "Johnny Test", "Danny Phantom"]
+                },
+                {
+                    content: "🎭👧🎬",
+                    answer: "Helga Pataki",
+                    options: ["Helga Pataki", "Arnold", "Gerald", "Phoebe"]
+                },
+                {
+                    content: "🦊👣🔍",
+                    answer: "Swiper",
+                    options: ["Swiper", "Dora", "Boots", "Diego"]
+                },
+                {
+                    content: "🐰🤪🎮",
+                    answer: "Rabbids",
+                    options: ["Rabbids", "Bunnies", "Rayman", "Crazy Rabbits"]
+                },
+                {
+                    content: "🧚‍♂️👑💫",
+                    answer: "Cosmo and Wanda",
+                    options: ["Cosmo and Wanda", "Timmy Turner", "Fairy Godparents", "Magic Duo"]
+                },
+                {
+                    content: "🐱🤖🔧",
+                    answer: "Jenny (XJ-9)",
+                    options: ["Jenny (XJ-9)", "Robot Jones", "Robotboy", "Android 18"]
+                },
+                {
+                    content: "🦊👻💪",
+                    answer: "El Tigre",
+                    options: ["El Tigre", "White Tiger", "Tiger Claw", "Wolverine"]
+                },
+                {
+                    content: "👨‍👦🏈📺",
+                    answer: "Arnold",
+                    options: ["Arnold", "Gerald", "Harold", "Sid"]
+                },
+                {
+                    content: "🐻🦫🌲",
+                    answer: "The Angry Beavers",
+                    options: ["The Angry Beavers", "CatDog", "Ren & Stimpy", "Wild Thornberrys"]
+                },
+                {
+                    content: "👧🌍🗣️",
+                    answer: "Eliza Thornberry",
+                    options: ["Eliza Thornberry", "Dora", "Kim Possible", "Penny Proud"]
+                },
+                {
+                    content: "🧠🤪💥",
+                    answer: "GIR",
+                    options: ["GIR", "Robot", "Zim", "Dib"]
+                },
+                {
+                    content: "👽💚🌍",
+                    answer: "Zim",
+                    options: ["Zim", "Marvin", "Roger", "Crypto"]
+                },
+                {
+                    content: "🐌🎵🐌",
+                    answer: "Gary",
+                    options: ["Gary", "Patrick", "Squidward", "Sandy"]
+                },
+                {
+                    content: "🦀💰🍔",
+                    answer: "Mr. Krabs",
+                    options: ["Mr. Krabs", "Plankton", "SpongeBob", "Larry"]
+                },
+                {
+                    content: "🧪👶📱",
+                    answer: "Dexter",
+                    options: ["Dexter", "Jimmy Neutron", "Johnny Test", "Mandark"]
+                }
+            ],
+            avengers: [
+                {
+                    content: "🧔⚡🔨",
+                    answer: "Thor",
+                    options: ["Thor", "Zeus", "Storm", "Lightning Lord"]
+                },
+                {
+                    content: "🤖❤️💥",
+                    answer: "Iron Man",
+                    options: ["Iron Man", "Ultron", "Vision", "War Machine"]
+                },
+                {
+                    content: "🛡️⭐️🇺🇸",
+                    answer: "Captain America",
+                    options: ["Captain America", "USAgent", "Red Guardian", "Union Jack"]
+                },
+                {
+                    content: "🏹🎯💜",
+                    answer: "Hawkeye",
+                    options: ["Hawkeye", "Green Arrow", "Bullseye", "Merida"]
+                },
+                {
+                    content: "🕷️👩🔫",
+                    answer: "Black Widow",
+                    options: ["Black Widow", "Spider-Woman", "Wasp", "Catwoman"]
+                },
+                {
+                    content: "💚👊😡",
+                    answer: "Hulk",
+                    options: ["Hulk", "She-Hulk", "Abomination", "Beast"]
+                },
+                {
+                    content: "🤖👁️💎",
+                    answer: "Vision",
+                    options: ["Vision", "Ultron", "JARVIS", "Machine Man"]
+                },
+                {
+                    content: "🧙‍♀️🔮❤️",
+                    answer: "Scarlet Witch",
+                    options: ["Scarlet Witch", "Doctor Strange", "Enchantress", "Zatanna"]
+                },
+                {
+                    content: "🦅👊🏃‍♂️",
+                    answer: "Falcon",
+                    options: ["Falcon", "Hawkman", "Angel", "Vulture"]
+                },
+                {
+                    content: "🐜👨‍🔬💪",
+                    answer: "Ant-Man",
+                    options: ["Ant-Man", "The Atom", "Blue Beetle", "The Wasp"]
+                },
+                {
+                    content: "🕷️👨🏻🕸️",
+                    answer: "Spider-Man",
+                    options: ["Spider-Man", "Black Widow", "Ant-Man", "Wasp"]
+                },
+                {
+                    content: "🧙‍♂️🎭💫",
+                    answer: "Doctor Strange",
+                    options: ["Doctor Strange", "Scarlet Witch", "Wong", "Ancient One"]
+                },
+                {
+                    content: "🐱👑💜",
+                    answer: "Black Panther",
+                    options: ["Black Panther", "Killmonger", "White Tiger", "Catwoman"]
+                },
+                {
+                    content: "⚔️👩🏻💚",
+                    answer: "Gamora",
+                    options: ["Gamora", "Black Widow", "She-Hulk", "Nebula"]
+                },
+                {
+                    content: "🌟👨🏻💫",
+                    answer: "Star-Lord",
+                    options: ["Star-Lord", "Nova", "Captain Marvel", "Adam Warlock"]
+                },
+                {
+                    content: "🦝🔫🚀",
+                    answer: "Rocket Raccoon",
+                    options: ["Rocket Raccoon", "Star-Lord", "Groot", "Howard the Duck"]
+                },
+                {
+                    content: "🌳🌱💚",
+                    answer: "Groot",
+                    options: ["Groot", "Swamp Thing", "Man-Thing", "Plant-Man"]
+                },
+                {
+                    content: "🤖💙💥",
+                    answer: "War Machine",
+                    options: ["War Machine", "Iron Man", "Ultron", "Vision"]
+                },
+                {
+                    content: "🐜👩💪",
+                    answer: "The Wasp",
+                    options: ["The Wasp", "Ant-Man", "Black Widow", "Spider-Woman"]
+                },
+                {
+                    content: "👊🏻💎💪",
+                    answer: "Drax",
+                    options: ["Drax", "Thanos", "Hulk", "Juggernaut"]
+                }
+            ],
+            movies: [
+                {
+                    content: "🦁👑🌅",
+                    answer: "The Lion King",
+                    options: ["The Lion King", "Madagascar", "Jungle Book", "Tarzan"]
+                },
+                {
+                    content: "🧊💗🚢",
+                    answer: "Titanic",
+                    options: ["Titanic", "The Perfect Storm", "Poseidon", "Waterworld"]
+                },
+                {
+                    content: "👻👻🏰",
+                    answer: "Ghostbusters",
+                    options: ["Ghostbusters", "Casper", "The Haunting", "Poltergeist"]
+                },
+                {
+                    content: "🧙‍♂️💍🌋",
+                    answer: "Lord of the Rings",
+                    options: ["Lord of the Rings", "The Hobbit", "Harry Potter", "Game of Thrones"]
+                },
+                {
+                    content: "🦖🏝️🔬",
+                    answer: "Jurassic Park",
+                    options: ["Jurassic Park", "King Kong", "Godzilla", "Land of the Lost"]
+                },
+                {
+                    content: "🎭👻🎭",
+                    answer: "Phantom of the Opera",
+                    options: ["Phantom of the Opera", "Les Misérables", "Chicago", "Moulin Rouge"]
+                },
+                {
+                    content: "🌟⚔️🚀",
+                    answer: "Star Wars",
+                    options: ["Star Wars", "Star Trek", "Battlestar Galactica", "Guardians of the Galaxy"]
+                },
+                {
+                    content: "🎪🐘👨",
+                    answer: "The Greatest Showman",
+                    options: ["The Greatest Showman", "Dumbo", "Water for Elephants", "Big Top"]
+                },
+                {
+                    content: "🧜‍♀️🌊💕",
+                    answer: "The Little Mermaid",
+                    options: ["The Little Mermaid", "Splash", "Aquamarine", "The Shape of Water"]
+                },
+                {
+                    content: "🎸💀🎼",
+                    answer: "Coco",
+                    options: ["Coco", "Book of Life", "Guitar Hero", "Soul"]
+                },
+                {
+                    content: "🧙‍♂️👓⚡",
+                    answer: "Harry Potter",
+                    options: ["Harry Potter", "Gandalf", "Merlin", "Doctor Strange"]
+                },
+                {
+                    content: "🦖🌴🚙",
+                    answer: "Jurassic Park",
+                    options: ["Jurassic Park", "Land Before Time", "Godzilla", "King Kong"]
+                },
+                {
+                    content: "🎭👻🌹",
+                    answer: "Beauty and the Beast",
+                    options: ["Beauty and the Beast", "Phantom of the Opera", "Cinderella", "Sleeping Beauty"]
+                },
+                {
+                    content: "🚗💨⚡",
+                    answer: "Fast & Furious",
+                    options: ["Fast & Furious", "Speed", "Gone in 60 Seconds", "Need for Speed"]
+                },
+                {
+                    content: "🤖👽💥",
+                    answer: "Transformers",
+                    options: ["Transformers", "Pacific Rim", "Real Steel", "Iron Giant"]
+                },
+                {
+                    content: "🏰❄️👸",
+                    answer: "Frozen",
+                    options: ["Frozen", "Snow Queen", "Ice Princess", "Narnia"]
+                },
+                {
+                    content: "🎪🎭🎪",
+                    answer: "The Greatest Showman",
+                    options: ["The Greatest Showman", "Circus", "Big Top", "Dumbo"]
+                },
+                {
+                    content: "🎸👨‍👦💫",
+                    answer: "School of Rock",
+                    options: ["School of Rock", "Rock Star", "This Is Spinal Tap", "Almost Famous"]
+                },
+                {
+                    content: "🏀👾🎮",
+                    answer: "Space Jam",
+                    options: ["Space Jam", "Basketball Diaries", "Like Mike", "Air Bud"]
+                },
+                {
+                    content: "🎭🦁👑",
+                    answer: "The Lion King",
+                    options: ["The Lion King", "Madagascar", "Jungle Book", "Zootopia"]
+                }
+            ],
+            songs: [
+                {
+                    content: "⭐👀🌃",
+                    answer: "Starboy",
+                    options: ["Starboy", "Starlight", "Night Sky", "Star Gazing"]
+                },
+                {
+                    content: "💃🌙✨",
+                    answer: "Dancing in the Moonlight",
+                    options: ["Dancing in the Moonlight", "Night Moves", "Moonwalk", "Dance Night"]
+                },
+                {
+                    content: "🎵💜🌧️",
+                    answer: "Purple Rain",
+                    options: ["Purple Rain", "Rain Dance", "Storm", "Violet Sky"]
+                },
+                {
+                    content: "👋📱💃",
+                    answer: "Call Me Maybe",
+                    options: ["Call Me Maybe", "Telephone", "Hello", "Ring Ring"]
+                },
+                {
+                    content: "🌹🔫💕",
+                    answer: "Guns and Roses",
+                    options: ["Guns and Roses", "Love Shots", "Flower Power", "Rose Garden"]
+                },
+                {
+                    content: "🎲🎲👶",
+                    answer: "Rolling in the Deep",
+                    options: ["Rolling in the Deep", "Dice Game", "Baby Roll", "Deep Blue"]
+                },
+                {
+                    content: "🌟👗🎵",
+                    answer: "Stairway to Heaven",
+                    options: ["Stairway to Heaven", "Star Dress", "Heavenly", "Starlight"]
+                },
+                {
+                    content: "🎸🦊🔥",
+                    answer: "Fox on the Run",
+                    options: ["Fox on the Run", "Wild Fire", "Animal Rock", "Running Free"]
+                },
+                {
+                    content: "🎪🎭🎪",
+                    answer: "The Greatest Show",
+                    options: ["The Greatest Show", "Circus Life", "Show Time", "Big Top"]
+                },
+                {
+                    content: "💔🏨🌴",
+                    answer: "Hotel California",
+                    options: ["Hotel California", "Heartbreak Hotel", "Paradise City", "Summer Nights"]
+                },
+                {
+                    content: "👑💃🌙",
+                    answer: "Dancing Queen",
+                    options: ["Dancing Queen", "Moon Dance", "Queen of Hearts", "Night Moves"]
+                },
+                {
+                    content: "🌧️💜😢",
+                    answer: "Purple Rain",
+                    options: ["Purple Rain", "November Rain", "Blue Rain", "Crying in the Rain"]
+                },
+                {
+                    content: "🎸🔥💫",
+                    answer: "Stairway to Heaven",
+                    options: ["Stairway to Heaven", "Highway to Hell", "Smoke on the Water", "Light My Fire"]
+                },
+                {
+                    content: "👋🎵☎️",
+                    answer: "Hello",
+                    options: ["Hello", "Call Me Maybe", "Telephone", "Say Something"]
+                },
+                {
+                    content: "💃🕺🌙",
+                    answer: "Dancing in the Moonlight",
+                    options: ["Dancing in the Moonlight", "Moon River", "Moondance", "Night Fever"]
+                },
+                {
+                    content: "🎸🌧️☔",
+                    answer: "November Rain",
+                    options: ["November Rain", "Purple Rain", "Rain on Me", "Set Fire to the Rain"]
+                },
+                {
+                    content: "💔🛣️😢",
+                    answer: "Boulevard of Broken Dreams",
+                    options: ["Boulevard of Broken Dreams", "Highway to Hell", "Long and Winding Road", "Dead End Street"]
+                },
+                {
+                    content: "🎸🔥🎼",
+                    answer: "Light My Fire",
+                    options: ["Light My Fire", "Ring of Fire", "Great Balls of Fire", "Burning Love"]
+                },
+                {
+                    content: "👊💫🎵",
+                    answer: "All Star",
+                    options: ["All Star", "Rock Star", "Superstar", "Shooting Star"]
+                },
+                {
+                    content: "🌙🎵💕",
+                    answer: "Moonlight Sonata",
+                    options: ["Moonlight Sonata", "Claire de Lune", "Moon River", "Blue Moon"]
+                }
+            ],
+            stories: [
+                {
+                    content: "🐺👧🏼🧢",
+                    answer: "Little Red Riding Hood",
+                    options: ["Little Red Riding Hood", "The Wolf's Tale", "Forest Journey", "Girl in the Woods"]
+                },
+                {
+                    content: "👸💤🌹",
+                    answer: "Sleeping Beauty",
+                    options: ["Sleeping Beauty", "Rose Princess", "Dream Girl", "The Enchanted Sleep"]
+                },
+                {
+                    content: "🧜‍♀️🌊👑",
+                    answer: "The Little Mermaid",
+                    options: ["The Little Mermaid", "Ocean Princess", "Sea Queen", "Mermaid Tale"]
+                },
+                {
+                    content: "🐸👑💋",
+                    answer: "The Frog Prince",
+                    options: ["The Frog Prince", "Enchanted Kiss", "Royal Frog", "Magic Kiss"]
+                },
+                {
+                    content: "👰❄️👑",
+                    answer: "The Snow Queen",
+                    options: ["The Snow Queen", "Frozen Heart", "Ice Princess", "Winter's Tale"]
+                },
+                {
+                    content: "🧚‍♂️🪄🌟",
+                    answer: "Peter Pan",
+                    options: ["Peter Pan", "Fairy Tale", "Magic Boy", "Never Land"]
+                },
+                {
+                    content: "🎭👻📚",
+                    answer: "The Canterville Ghost",
+                    options: ["The Canterville Ghost", "Haunted Library", "Ghost Stories", "Spirit Book"]
+                },
+                {
+                    content: "🗡️⚔️🐉",
+                    answer: "Saint George and the Dragon",
+                    options: ["Saint George and the Dragon", "Dragon Slayer", "Knight's Tale", "Medieval Legend"]
+                },
+                {
+                    content: "🧙‍♂️🗡️👑",
+                    answer: "The Sword in the Stone",
+                    options: ["The Sword in the Stone", "King Arthur", "Merlin's Magic", "Royal Sword"]
+                },
+                {
+                    content: "🦢🎭💕",
+                    answer: "The Ugly Duckling",
+                    options: ["The Ugly Duckling", "Swan Lake", "Bird Tale", "Beautiful Swan"]
+                },
+                {
+                    content: "👸🏰🎭",
+                    answer: "Cinderella",
+                    options: ["Cinderella", "Snow White", "Sleeping Beauty", "Beauty and the Beast"]
+                },
+                {
+                    content: "🧚‍♀️✨👗",
+                    answer: "Fairy Godmother",
+                    options: ["Fairy Godmother", "Tinker Bell", "Sleeping Beauty", "Maleficent"]
+                },
+                {
+                    content: "🗡️👑🐉",
+                    answer: "King Arthur",
+                    options: ["King Arthur", "Beowulf", "Saint George", "Dragon Slayer"]
+                },
+                {
+                    content: "🧙‍♂️📚💫",
+                    answer: "Merlin",
+                    options: ["Merlin", "Gandalf", "Dumbledore", "Prospero"]
+                },
+                {
+                    content: "🎭😈🎻",
+                    answer: "Faust",
+                    options: ["Faust", "Devil's Trill", "Phantom", "Don Juan"]
+                },
+                {
+                    content: "👸💤🏰",
+                    answer: "Sleeping Beauty",
+                    options: ["Sleeping Beauty", "Snow White", "Rapunzel", "Cinderella"]
+                },
+                {
+                    content: "🧚‍♂️🌟🏴‍☠️",
+                    answer: "Peter Pan",
+                    options: ["Peter Pan", "Tinker Bell", "Hook", "Neverland"]
+                }
+            ]
+        };
+
+        function Quiz({ category, onBack }) {
+            const [currentQuestionIndex, setCurrentQuestionIndex] = React.useState(0);
+            const [score, setScore] = React.useState(0);
+            const [incorrectCount, setIncorrectCount] = React.useState(0);
+            const [timeLeft, setTimeLeft] = React.useState(15);
+            const [shuffledOptions, setShuffledOptions] = React.useState([]);
+            const [gameOver, setGameOver] = React.useState(false);
+            const [feedback, setFeedback] = React.useState(null);
+            const [streak, setStreak] = React.useState(0);
+            const [showStreak, setShowStreak] = React.useState(false);
+            const [randomizedQuestions, setRandomizedQuestions] = React.useState([]);
+
+            // Initialize randomized questions when category changes
+            React.useEffect(() => {
+                const questions = allCategories[category];
+                setRandomizedQuestions(shuffleArray([...questions]));
+                setCurrentQuestionIndex(0);
+                setScore(0);
+                setIncorrectCount(0);
+                setStreak(0);
+                setTimeLeft(15);
+                setGameOver(false);
+                setFeedback(null);
+                setShowStreak(false);
+            }, [category]);
+
+            const currentQuestion = randomizedQuestions[currentQuestionIndex];
+
+            React.useEffect(() => {
+                if (currentQuestion) {
+                    setShuffledOptions(shuffleArray([...currentQuestion.options]));
+                }
+                setTimeLeft(15);
+                setFeedback(null);
+                setShowStreak(false);
+            }, [currentQuestionIndex, currentQuestion]);
+
+            React.useEffect(() => {
+                if (timeLeft > 0 && !gameOver && !feedback) {
+                    const timer = setTimeout(() => setTimeLeft(timeLeft - 1), 1000);
+                    return () => clearTimeout(timer);
+                } else if (timeLeft === 0 && !gameOver && !feedback) {
+                    handleAnswer(null);
+                }
+            }, [timeLeft, gameOver, feedback]);
+
+            const handleAnswer = (selectedAnswer) => {
+                const isCorrect = selectedAnswer === currentQuestion.answer;
+                if (isCorrect) {
+                    setScore(score + 1);
+                    setStreak(prev => prev + 1);
+                    if (streak + 1 >= 3) {
+                        setShowStreak(true);
+                    }
+                    setFeedback({ type: 'correct', message: '🎉 Correct!' });
+                } else {
+                    setIncorrectCount(incorrectCount + 1);
+                    setStreak(0);
+                    setFeedback({ 
+                        type: 'incorrect', 
+                        message: `❌ Incorrect! The answer was: ${currentQuestion.answer}` 
+                    });
+                }
+                
+                setTimeout(() => {
+                    setFeedback(null);
+                    setShowStreak(false);
+                    if (currentQuestionIndex < randomizedQuestions.length - 1) {
+                        setCurrentQuestionIndex(currentQuestionIndex + 1);
+                    } else {
+                        setGameOver(true);
+                    }
+                }, 2000);
+            };
+
+            if (gameOver) {
+                return (
+                    <div className="quiz-container">
+                        <h2 style={{ textAlign: 'center', fontSize: '2rem' }}>Game Over!</h2>
+                        <div className="score-display">
+                            <p>Correct Answers: {score}</p>
+                            <p>Incorrect Answers: {incorrectCount}</p>
+                            <p>Total Score: {score} out of {randomizedQuestions.length}</p>
+                        </div>
+                        <div style={{ textAlign: 'center' }}>
+                            <button className="category-button" onClick={onBack}>
+                                Back to Categories
+                            </button>
+                        </div>
+                    </div>
+                );
+            }
+
+            return (
+                <div className="quiz-container">
+                    <div className="back-button">
+                        <button 
+                            className="category-button"
+                            onClick={() => {
+                                if (confirm('Are you sure you want to go back? Your progress will be lost.')) {
+                                    onBack();
+                                }
+                            }}
+                            style={{
+                                padding: '0.8rem 1.2rem',
+                                fontSize: '1rem',
+                                backgroundColor: 'rgba(255, 255, 255, 0.9)',
+                            }}
+                        >
+                            ← Back to Categories
+                        </button>
+                    </div>
+
+                    {streak >= 3 && (
+                        <div className="streak-count">
+                            🔥 {streak} in a row!
+                        </div>
+                    )}
+
+                    <div className="stats-bar">
+                        <span>Score: {score}</span>
+                        <span className="timer">Time: {timeLeft}s</span>
+                        <span>Question: {currentQuestionIndex + 1}/{randomizedQuestions.length}</span>
+                    </div>
+                    
+                    <div className="progress-bar">
+                        <div 
+                            className="progress-fill" 
+                            style={{ width: `${(currentQuestionIndex / randomizedQuestions.length) * 100}%` }}
+                        />
+                    </div>
+
+                    <div className="emoji-display">
+                        {currentQuestion?.content}
+                    </div>
+
+                    {showStreak && streak >= 3 && (
+                        <div className="hot-streak">
+                            🔥 HOT STREAK! 🔥
+                            <br />
+                            {streak} Correct in a Row!
+                        </div>
+                    )}
+
+                    {feedback && (
+                        <div className={`feedback ${feedback.type}`}>
+                            {feedback.message}
+                        </div>
+                    )}
+
+                    <div className="options-grid">
+                        {shuffledOptions.map((option) => (
+                            <button
+                                key={option}
+                                onClick={() => !feedback && handleAnswer(option)}
+                                className="option-button"
+                                disabled={!!feedback}
+                            >
+                                {option}
+                            </button>
+                        ))}
+                    </div>
+                </div>
+            );
+        }
+
+        function EmojiQuiz() {
+            const [category, setCategory] = React.useState(null);
+            const [currentQuestionIndex, setCurrentQuestionIndex] = React.useState(0);
+            const [score, setScore] = React.useState(0);
+            const [feedback, setFeedback] = React.useState("");
+            const [currentStreak, setCurrentStreak] = React.useState(0);
+            const [randomizedQuestions, setRandomizedQuestions] = React.useState([]);
+
+            function createFireEmoji() {
+                const container = document.querySelector('.fire-emoji-container') || (() => {
+                    const div = document.createElement('div');
+                    div.className = 'fire-emoji-container';
+                    document.body.appendChild(div);
+                    return div;
+                })();
+
+                const emoji = document.createElement('div');
+                emoji.className = 'fire-emoji';
+                
+                // Randomize emoji type
+                const emojis = ['🔥', '💥', '⚡', '✨', '🌟'];
+                emoji.textContent = emojis[Math.floor(Math.random() * emojis.length)];
+                
+                // Random angle and distance
+                const angle = Math.random() * Math.PI * 2;
+                const distance = 100 + Math.random() * 150;
+                
+                // Set initial position at center
+                emoji.style.left = '50%';
+                emoji.style.top = '50%';
+                emoji.style.transform = 'translate(-50%, -50%)';
+                emoji.style.opacity = '0';
+                
+                container.appendChild(emoji);
+                
+                // Force reflow
+                emoji.offsetHeight;
+                
+                // Animate outward
+                requestAnimationFrame(() => {
+                    emoji.style.transform = `translate(${Math.cos(angle) * distance}px, ${Math.sin(angle) * distance}px) rotate(${Math.random() * 360}deg)`;
+                    emoji.style.opacity = '0';
+                });
+                
+                // Remove after animation
+                setTimeout(() => emoji.remove(), 1000);
+            }
+
+            function showHotStreak() {
+                console.log('Showing hot streak animation');
+                
+                // Create container if it doesn't exist
+                if (!document.querySelector('.fire-emoji-container')) {
+                    const container = document.createElement('div');
+                    container.className = 'fire-emoji-container';
+                    document.body.appendChild(container);
+                }
+                
+                // Create waves of emojis
+                const totalEmojis = 30;
+                
+                // Initial burst
+                for (let i = 0; i < totalEmojis; i++) {
+                    setTimeout(() => createFireEmoji(), i * 50);
+                }
+                
+                // Secondary burst
+                setTimeout(() => {
+                    for (let i = 0; i < totalEmojis / 2; i++) {
+                        setTimeout(() => createFireEmoji(), i * 50);
+                    }
+                }, 500);
+            }
+
+            function handleAnswer(selectedAnswer) {
+                const currentQuestion = randomizedQuestions[currentQuestionIndex];
+                const isCorrect = selectedAnswer === currentQuestion.answer;
+                
+                if (isCorrect) {
+                    setScore(prevScore => prevScore + 1);
+                    setCurrentStreak(prevStreak => {
+                        const newStreak = prevStreak + 1;
+                        console.log('Current streak:', newStreak);
+                        if (newStreak >= 3) {
+                            console.log('Triggering hot streak!');
+                            showHotStreak(); // Call directly without setTimeout
+                        }
+                        return newStreak;
+                    });
+                    setFeedback("Correct! 🎉");
+                    
+                    setTimeout(() => {
+                        setFeedback("");
+                        if (currentQuestionIndex < randomizedQuestions.length - 1) {
+                            setCurrentQuestionIndex(prevIndex => prevIndex + 1);
+                        }
+                    }, 1000);
+                } else {
+                    setCurrentStreak(0);
+                    setFeedback("Try again! 💪");
+                }
+            }
+
+            React.useEffect(() => {
+                if (category) {
+                    // Randomize questions when category is selected
+                    const questions = allCategories[category];
+                    const shuffled = [...questions].sort(() => Math.random() - 0.5);
+                    setRandomizedQuestions(shuffled);
+                    setCurrentQuestionIndex(0);
+                    setScore(0);
+                    setCurrentStreak(0);
+                }
+            }, [category]);
+
+            const handleCategorySelect = (selectedCategory) => {
+                setCategory(selectedCategory);
+            };
+
+            const handleBack = () => {
+                setCategory(null);
+            };
+
+            if (!category) {
+                return (
+                    <div className="welcome-container">
+                        {/* Add floating emoji decorations */}
+                        <div className="emoji-decoration" style={{ top: '10%', left: '10%' }}>🎮</div>
+                        <div className="emoji-decoration" style={{ top: '20%', right: '15%' }}>🎯</div>
+                        <div className="emoji-decoration" style={{ bottom: '15%', left: '15%' }}>🎪</div>
+                        <div className="emoji-decoration" style={{ bottom: '20%', right: '10%' }}>🎨</div>
+                        
+                        <div className="welcome-content">
+                            <h1 className="category-title">Emoji Quiz Challenge</h1>
+                            <p className="category-description">
+                                Test your emoji interpretation skills across different categories!<br/>
+                                Choose a category below and start your adventure! 🚀
+                            </p>
+                            <div className="category-grid">
+                                {Object.keys(allCategories).map((cat) => (
+                                    <button
+                                        key={cat}
+                                        onClick={() => handleCategorySelect(cat)}
+                                        className="category-button"
+                                    >
+                                        {cat.split('_').map(word => 
+                                            word.charAt(0).toUpperCase() + word.slice(1)
+                                        ).join(' ')}
+                                        <br/>
+                                        <span style={{ fontSize: '0.9rem', opacity: 0.8 }}>
+                                            {allCategories[cat].length} Questions
+                                        </span>
+                                    </button>
+                                ))}
+                            </div>
+                        </div>
+                    </div>
+                );
+            }
+
+            return <Quiz category={category} onBack={handleBack} />;
+        }
+
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<EmojiQuiz />);
+    </script>
+</body>
+</html> 
