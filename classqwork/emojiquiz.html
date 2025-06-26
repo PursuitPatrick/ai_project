@@ -19,23 +19,38 @@
             margin: 2rem auto;
             padding: 2rem;
             background: rgba(255, 255, 255, 0.1);
+            -webkit-backdrop-filter: blur(10px);
             backdrop-filter: blur(10px);
             border-radius: 20px;
             box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.37);
             position: relative;
+            animation: fadeIn 0.5s ease-out;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
         }
 
         .back-button {
-            position: absolute;
-            top: 1rem;
-            left: 1rem;
-            z-index: 10;
-            opacity: 0.9;
-            transition: opacity 0.3s ease;
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            background: rgba(255, 255, 255, 0.2);
+            padding: 10px 20px;
+            border-radius: 15px;
+            -webkit-backdrop-filter: blur(5px);
+            backdrop-filter: blur(5px);
+            border: none;
+            color: white;
+            cursor: pointer;
+            font-size: 1rem;
+            transition: all 0.3s ease;
         }
 
         .back-button:hover {
-            opacity: 1;
+            background: rgba(255, 255, 255, 0.3);
+            transform: translateY(-2px);
         }
 
         .stats-bar {
@@ -87,70 +102,77 @@
         }
 
         .feedback {
-            text-align: center;
             font-size: 1.5rem;
+            font-weight: bold;
+            text-align: center;
             margin: 1rem 0;
-            padding: 1rem;
-            border-radius: 10px;
-            animation: fadeIn 0.5s ease-out;
+            min-height: 2rem;
+            animation: feedbackPop 0.3s ease-out;
         }
 
-        .feedback.correct {
-            background: rgba(46, 213, 115, 0.2);
-            color: #2ed573;
-        }
-
-        .feedback.incorrect {
-            background: rgba(255, 71, 87, 0.2);
-            color: #ff4757;
-        }
-
-        .category-button {
-            padding: 1.2rem 2rem;
-            margin: 0.5rem;
-            font-size: 1.1rem;
-            border: none;
-            border-radius: 12px;
-            background: rgba(255, 255, 255, 0.9);
-            color: #333;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
-        }
-
-        .category-button:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.2);
-            background: white;
-        }
-
-        @keyframes float {
-            0% { transform: translateY(0px); }
-            50% { transform: translateY(-10px); }
-            100% { transform: translateY(0px); }
-        }
-
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(-10px); }
-            to { opacity: 1; transform: translateY(0); }
+        @keyframes feedbackPop {
+            0% { transform: scale(0.8); opacity: 0; }
+            50% { transform: scale(1.2); }
+            100% { transform: scale(1); opacity: 1; }
         }
 
         .score-display {
-            text-align: center;
-            font-size: 2rem;
-            margin: 2rem 0;
-        }
-
-        .timer {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: rgba(255, 255, 255, 0.2);
+            padding: 10px 20px;
+            border-radius: 15px;
+            -webkit-backdrop-filter: blur(5px);
+            backdrop-filter: blur(5px);
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
             font-size: 1.2rem;
             color: white;
-            text-shadow: 1px 1px 4px rgba(0, 0, 0, 0.2);
+            z-index: 100;
+        }
+
+        .streak-counter {
+            position: fixed;
+            top: 70px;
+            right: 20px;
+            background: rgba(255, 255, 255, 0.2);
+            padding: 10px 20px;
+            border-radius: 15px;
+            -webkit-backdrop-filter: blur(5px);
+            backdrop-filter: blur(5px);
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            font-size: 1.2rem;
+            color: white;
+            z-index: 100;
+            transition: all 0.3s ease;
+        }
+
+        .streak-counter.hot {
+            background: rgba(255, 100, 0, 0.3);
+            box-shadow: 0 4px 15px rgba(255, 100, 0, 0.4);
+        }
+
+        .answer-button {
+            transition: all 0.3s ease;
+            border: 2px solid transparent;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .answer-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+            border-color: rgba(255, 255, 255, 0.5);
+        }
+
+        .answer-button:active {
+            transform: translateY(1px);
         }
 
         .progress-bar {
             width: 100%;
             height: 10px;
-            background: rgba(255, 255, 255, 0.2);
+            background: rgba(255, 255, 255, 0.1);
             border-radius: 5px;
             margin: 1rem 0;
             overflow: hidden;
@@ -158,7 +180,7 @@
 
         .progress-fill {
             height: 100%;
-            background: linear-gradient(90deg, #00b894, #00cec9);
+            background: linear-gradient(90deg, #4CAF50, #8BC34A);
             transition: width 0.3s ease;
         }
 
@@ -170,14 +192,14 @@
             transition: all 1s ease-out;
         }
 
-        .fire-emoji-container {
+        .fire-container {
             position: fixed;
-            top: 50%;
-            left: 50%;
-            width: 0;
-            height: 0;
-            z-index: 9999;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
             pointer-events: none;
+            z-index: 9999;
         }
 
         .streak-count {
@@ -297,6 +319,7 @@
 
         .welcome-content {
             background: rgba(255, 255, 255, 0.1);
+            -webkit-backdrop-filter: blur(10px);
             backdrop-filter: blur(10px);
             padding: 3rem;
             border-radius: 20px;
@@ -1030,6 +1053,108 @@
                     answer: "Peter Pan",
                     options: ["Peter Pan", "Tinker Bell", "Hook", "Neverland"]
                 }
+            ],
+            countries: [
+                {
+                    content: '🗼🍜🌸🚅',
+                    options: ['Japan', 'China', 'South Korea', 'Thailand'],
+                    answer: 'Japan'
+                },
+                {
+                    content: '🐨🦘🏊‍♂️🏖️',
+                    options: ['New Zealand', 'South Africa', 'Australia', 'Brazil'],
+                    answer: 'Australia'
+                },
+                {
+                    content: '🗽🍔🏈🗽',
+                    options: ['Canada', 'United States', 'Mexico', 'Brazil'],
+                    answer: 'United States'
+                },
+                {
+                    content: '🎭🍝🍕🏛️',
+                    options: ['Spain', 'Greece', 'France', 'Italy'],
+                    answer: 'Italy'
+                },
+                {
+                    content: '☕🌷🚲🌊',
+                    options: ['Belgium', 'Denmark', 'Netherlands', 'Germany'],
+                    answer: 'Netherlands'
+                },
+                {
+                    content: '🥖🗼🍷🎨',
+                    options: ['Italy', 'Spain', 'France', 'Portugal'],
+                    answer: 'France'
+                },
+                {
+                    content: '🎪🐻🏰❄️',
+                    options: ['Norway', 'Russia', 'Poland', 'Sweden'],
+                    answer: 'Russia'
+                },
+                {
+                    content: '🍺🥨🚗⚽',
+                    options: ['Austria', 'Switzerland', 'Belgium', 'Germany'],
+                    answer: 'Germany'
+                },
+                {
+                    content: '☘️🍺🐑🎻',
+                    options: ['Scotland', 'Wales', 'Ireland', 'England'],
+                    answer: 'Ireland'
+                },
+                {
+                    content: '🏺🏛️🥙🌊',
+                    options: ['Turkey', 'Greece', 'Egypt', 'Cyprus'],
+                    answer: 'Greece'
+                },
+                {
+                    content: '🍛🕉️🐘🏏',
+                    options: ['Nepal', 'Sri Lanka', 'India', 'Bangladesh'],
+                    answer: 'India'
+                },
+                {
+                    content: '🐼🍚🧧🐉',
+                    options: ['Japan', 'Vietnam', 'China', 'Taiwan'],
+                    answer: 'China'
+                },
+                {
+                    content: '⚽🎭🌴🎉',
+                    options: ['Argentina', 'Colombia', 'Brazil', 'Peru'],
+                    answer: 'Brazil'
+                },
+                {
+                    content: '🌵🌮🎸🏜️',
+                    options: ['Spain', 'Mexico', 'Chile', 'Peru'],
+                    answer: 'Mexico'
+                },
+                {
+                    content: '🎪🦘🥟🐨',
+                    options: ['New Zealand', 'Australia', 'Indonesia', 'Malaysia'],
+                    answer: 'Australia'
+                },
+                {
+                    content: '⛷️🏔️⌚🧀',
+                    options: ['Austria', 'Sweden', 'Switzerland', 'Norway'],
+                    answer: 'Switzerland'
+                },
+                {
+                    content: '🗿🏖️💃🎭',
+                    options: ['Chile', 'Brazil', 'Argentina', 'Peru'],
+                    answer: 'Brazil'
+                },
+                {
+                    content: '🎎🍱🍣🏯',
+                    options: ['China', 'South Korea', 'Japan', 'Vietnam'],
+                    answer: 'Japan'
+                },
+                {
+                    content: '🎡👑☔🚌',
+                    options: ['Scotland', 'Ireland', 'England', 'Wales'],
+                    answer: 'England'
+                },
+                {
+                    content: '🥘💃🐂🍷',
+                    options: ['Italy', 'Portugal', 'Spain', 'Greece'],
+                    answer: 'Spain'
+                }
             ]
         };
 
@@ -1147,7 +1272,7 @@
                     </div>
 
                     {streak >= 3 && (
-                        <div className="streak-count">
+                        <div className="streak-counter hot">
                             🔥 {streak} in a row!
                         </div>
                     )}
@@ -1208,28 +1333,35 @@
             const [randomizedQuestions, setRandomizedQuestions] = React.useState([]);
 
             function createFireEmoji() {
-                const container = document.querySelector('.fire-emoji-container') || (() => {
-                    const div = document.createElement('div');
-                    div.className = 'fire-emoji-container';
-                    document.body.appendChild(div);
-                    return div;
-                })();
+                // Create container if it doesn't exist
+                let container = document.querySelector('.fire-container');
+                if (!container) {
+                    container = document.createElement('div');
+                    container.className = 'fire-container';
+                    document.body.appendChild(container);
+                }
 
                 const emoji = document.createElement('div');
                 emoji.className = 'fire-emoji';
                 
-                // Randomize emoji type
+                // Random emoji
                 const emojis = ['🔥', '💥', '⚡', '✨', '🌟'];
                 emoji.textContent = emojis[Math.floor(Math.random() * emojis.length)];
                 
-                // Random angle and distance
-                const angle = Math.random() * Math.PI * 2;
-                const distance = 100 + Math.random() * 150;
+                // Start position (center)
+                const startX = window.innerWidth / 2;
+                const startY = window.innerHeight / 2;
                 
-                // Set initial position at center
-                emoji.style.left = '50%';
-                emoji.style.top = '50%';
-                emoji.style.transform = 'translate(-50%, -50%)';
+                // Random end position
+                const angle = Math.random() * Math.PI * 2;
+                const distance = 150 + Math.random() * 100;
+                const endX = startX + Math.cos(angle) * distance;
+                const endY = startY + Math.sin(angle) * distance;
+                
+                // Set initial position
+                emoji.style.left = `${startX}px`;
+                emoji.style.top = `${startY}px`;
+                emoji.style.transform = 'translate(-50%, -50%) scale(0.1)';
                 emoji.style.opacity = '0';
                 
                 container.appendChild(emoji);
@@ -1237,40 +1369,28 @@
                 // Force reflow
                 emoji.offsetHeight;
                 
-                // Animate outward
+                // Animate
                 requestAnimationFrame(() => {
-                    emoji.style.transform = `translate(${Math.cos(angle) * distance}px, ${Math.sin(angle) * distance}px) rotate(${Math.random() * 360}deg)`;
-                    emoji.style.opacity = '0';
+                    emoji.style.transform = `translate(-50%, -50%) scale(1)`;
+                    emoji.style.opacity = '1';
+                    emoji.style.left = `${endX}px`;
+                    emoji.style.top = `${endY}px`;
                 });
                 
-                // Remove after animation
-                setTimeout(() => emoji.remove(), 1000);
+                // Cleanup
+                setTimeout(() => {
+                    emoji.style.opacity = '0';
+                    setTimeout(() => emoji.remove(), 1000);
+                }, 800);
             }
 
             function showHotStreak() {
                 console.log('Showing hot streak animation');
                 
-                // Create container if it doesn't exist
-                if (!document.querySelector('.fire-emoji-container')) {
-                    const container = document.createElement('div');
-                    container.className = 'fire-emoji-container';
-                    document.body.appendChild(container);
-                }
-                
-                // Create waves of emojis
-                const totalEmojis = 30;
-                
-                // Initial burst
-                for (let i = 0; i < totalEmojis; i++) {
+                // Create multiple waves
+                for (let i = 0; i < 15; i++) {
                     setTimeout(() => createFireEmoji(), i * 50);
                 }
-                
-                // Secondary burst
-                setTimeout(() => {
-                    for (let i = 0; i < totalEmojis / 2; i++) {
-                        setTimeout(() => createFireEmoji(), i * 50);
-                    }
-                }, 500);
             }
 
             function handleAnswer(selectedAnswer) {
@@ -1284,7 +1404,7 @@
                         console.log('Current streak:', newStreak);
                         if (newStreak >= 3) {
                             console.log('Triggering hot streak!');
-                            showHotStreak(); // Call directly without setTimeout
+                            showHotStreak();
                         }
                         return newStreak;
                     });
@@ -1338,21 +1458,32 @@
                                 Choose a category below and start your adventure! 🚀
                             </p>
                             <div className="category-grid">
-                                {Object.keys(allCategories).map((cat) => (
-                                    <button
-                                        key={cat}
-                                        onClick={() => handleCategorySelect(cat)}
-                                        className="category-button"
-                                    >
-                                        {cat.split('_').map(word => 
-                                            word.charAt(0).toUpperCase() + word.slice(1)
-                                        ).join(' ')}
-                                        <br/>
-                                        <span style={{ fontSize: '0.9rem', opacity: 0.8 }}>
-                                            {allCategories[cat].length} Questions
-                                        </span>
-                                    </button>
-                                ))}
+                                {Object.keys(allCategories).map((cat) => {
+                                    let displayName = cat;
+                                    if (cat === 'movies') displayName = 'Disney Movies';
+                                    if (cat === 'songs') displayName = 'Disney Songs';
+                                    if (cat === 'stories') displayName = 'Disney Stories';
+                                    if (cat === 'cartoonNetwork') displayName = 'Cartoon Network';
+                                    if (cat === 'dc_heroes') displayName = 'DC Heroes';
+                                    if (cat === 'cartoon_network') displayName = 'Cartoon Network';
+                                    if (cat === 'nickelodeon') displayName = 'Nickelodeon';
+                                    if (cat === 'avengers') displayName = 'Avengers';
+                                    if (cat === 'countries') displayName = 'Countries';
+                                    
+                                    return (
+                                        <button
+                                            key={cat}
+                                            onClick={() => handleCategorySelect(cat)}
+                                            className="category-button"
+                                        >
+                                            {displayName}
+                                            <br/>
+                                            <span style={{ fontSize: '0.9rem', opacity: 0.8 }}>
+                                                {allCategories[cat].length} Questions
+                                            </span>
+                                        </button>
+                                    );
+                                })}
                             </div>
                         </div>
                     </div>

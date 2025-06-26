@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>File Upload</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            min-height: 100vh;
+        }
+        .upload-container {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            text-align: center;
+        }
+        .file-input {
+            display: none;
+        }
+        .upload-button {
+            background: #4CAF50;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            margin: 10px 0;
+            transition: background 0.3s;
+        }
+        .upload-button:hover {
+            background: #45a049;
+        }
+        .file-name {
+            margin: 10px 0;
+            color: #666;
+        }
+        .success-message {
+            color: #4CAF50;
+            margin-top: 10px;
+            display: none;
+        }
+        .error-message {
+            color: #f44336;
+            margin-top: 10px;
+            display: none;
+        }
+        .links {
+            margin-top: 20px;
+        }
+        .links a {
+            color: #2196F3;
+            text-decoration: none;
+            margin: 0 10px;
+        }
+        .links a:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+    <div class="upload-container">
+        <h2>Upload Files</h2>
+        <p>Select a file to upload to the server</p>
+        
+        <input type="file" id="fileInput" class="file-input">
+        <button class="upload-button" onclick="document.getElementById('fileInput').click()">Choose File</button>
+        <div class="file-name" id="fileName">No file chosen</div>
+        <button class="upload-button" onclick="uploadFile()" id="uploadBtn" disabled>Upload</button>
+        
+        <div class="success-message" id="successMessage">File uploaded successfully!</div>
+        <div class="error-message" id="errorMessage"></div>
+
+        <div class="links">
+            <a href="/emojiquiz.html">Go to Emoji Quiz</a>
+            <a href="/quiz.js">View Quiz Script</a>
+        </div>
+    </div>
+
+    <script>
+        const fileInput = document.getElementById('fileInput');
+        const fileName = document.getElementById('fileName');
+        const uploadBtn = document.getElementById('uploadBtn');
+        const successMessage = document.getElementById('successMessage');
+        const errorMessage = document.getElementById('errorMessage');
+
+        fileInput.addEventListener('change', function() {
+            if (this.files.length > 0) {
+                fileName.textContent = this.files[0].name;
+                uploadBtn.disabled = false;
+            } else {
+                fileName.textContent = 'No file chosen';
+                uploadBtn.disabled = true;
+            }
+            successMessage.style.display = 'none';
+            errorMessage.style.display = 'none';
+        });
+
+        async function uploadFile() {
+            const file = fileInput.files[0];
+            if (!file) return;
+
+            const formData = new FormData();
+            formData.append('file', file);
+
+            try {
+                uploadBtn.disabled = true;
+                uploadBtn.textContent = 'Uploading...';
+                
+                const response = await fetch('/upload', {
+                    method: 'POST',
+                    body: formData
+                });
+
+                if (response.ok) {
+                    successMessage.style.display = 'block';
+                    errorMessage.style.display = 'none';
+                    fileName.textContent = 'No file chosen';
+                } else {
+                    throw new Error('Upload failed');
+                }
+            } catch (error) {
+                errorMessage.textContent = 'Error uploading file. Please try again.';
+                errorMessage.style.display = 'block';
+                successMessage.style.display = 'none';
+            } finally {
+                uploadBtn.disabled = false;
+                uploadBtn.textContent = 'Upload';
+                fileInput.value = '';
+            }
+        }
+    </script>
+</body>
+</html> 
